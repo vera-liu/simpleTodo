@@ -18,10 +18,21 @@ import java.util.ArrayList;
 public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder> {
     private ArrayList<String> items;
     private Context context;
+    private OnItemClickListener listener;
+    private boolean completed;
 
-    public ItemAdapter(Context adapterContext, ArrayList<String> adapterItems) {
+    public interface OnItemClickListener {
+        void onItemClick(View itemView, int position);
+    }
+
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        this.listener = listener;
+    }
+
+    public ItemAdapter(Context adapterContext, ArrayList<String> adapterItems, boolean completed) {
         context = adapterContext;
         items = adapterItems;
+        this.completed = completed;
     }
 
     private Context getContext() {
@@ -42,20 +53,15 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder> {
     public void onBindViewHolder(ItemAdapter.ViewHolder viewHolder, int position) {
         final int pos = position;
         final ItemAdapter.ViewHolder vHolder = viewHolder;
-        viewHolder.itemCheckBox.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String itemText = items.get(pos);
-                TextView itemName = vHolder.itemName;
-                if ((itemName.getPaintFlags() & Paint.STRIKE_THRU_TEXT_FLAG) > 0) {
-                    itemName.setPaintFlags(itemName.getPaintFlags() & ~(Paint.STRIKE_THRU_TEXT_FLAG));
-                } else {
-                    itemName.setPaintFlags(itemName.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
-                }
-            }
-        });
         String itemText = items.get(position);
         TextView itemName = viewHolder.itemName;
+        CheckBox itemCheckBox = viewHolder.itemCheckBox;
+        if (this.completed) {
+            itemName.setPaintFlags(itemName.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+            itemCheckBox.setChecked(true);
+        } else {
+            itemCheckBox.setChecked(false);
+        }
         itemName.setText(itemText);
     }
 
@@ -63,13 +69,25 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder> {
     public int getItemCount() {
         return items.size();
     }
-    public static class ViewHolder extends RecyclerView.ViewHolder {
+    public class ViewHolder extends RecyclerView.ViewHolder {
         public TextView itemName;
         public CheckBox itemCheckBox;
         public ViewHolder(View itemView) {
             super(itemView);
+            final View iView = itemView;
             itemName = (TextView) itemView.findViewById(R.id.itemName);
             itemCheckBox = (CheckBox) itemView.findViewById(R.id.itemCheckbox);
+            itemCheckBox.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (listener != null) {
+                        int position = getAdapterPosition();
+                        if (position != RecyclerView.NO_POSITION) {
+                            listener.onItemClick(iView, position);
+                        }
+                    }
+                }
+            });
         }
     }
 }
