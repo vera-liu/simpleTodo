@@ -6,9 +6,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+
+import com.activeandroid.ActiveAndroid;
+import com.activeandroid.Configuration;
+import com.activeandroid.query.Select;
 
 import org.apache.commons.io.FileUtils;
 
@@ -21,8 +24,8 @@ public class MainActivity extends AppCompatActivity implements EditItemFragment.
     ItemAdapter todoAdapter, doneAdapter;
     RecyclerView todoRvItems, doneRvItems;
     public void updateFiles() {
-        writeItems("todo.txt", todoItems);
-        writeItems("done.txt", doneItems);
+//        writeItems("todo.txt", todoItems);
+//        writeItems("done.txt", doneItems);
     }
     public ItemTouchHelper.SimpleCallback initItemTouchCallback(final ItemAdapter adapter, final ArrayList<Item> items) {
         return new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
@@ -55,8 +58,8 @@ public class MainActivity extends AppCompatActivity implements EditItemFragment.
     protected void showEditDialog(int position) {
         Item item = todoItems.get(position);
         FragmentManager fm = getSupportFragmentManager();
-        EditItemFragment editFragment = EditItemFragment.newInstance(item.getTask(), item.getNote(), position);
-        editFragment.show(fm,"fragment_edit_item");
+        //EditItemFragment editFragment = EditItemFragment.newInstance(item.getTask(), item.getNote(), position);
+        //editFragment.show(fm,"fragment_edit_item");
     }
     protected ItemAdapter.OnItemClickListener getTextListener() {
         return (new ItemAdapter.OnItemClickListener() {
@@ -88,13 +91,17 @@ public class MainActivity extends AppCompatActivity implements EditItemFragment.
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Configuration dbConfiguration = new Configuration.Builder(this).setDatabaseName("todo.db").create();
+        ActiveAndroid.initialize(dbConfiguration);
         todoRvItems = (RecyclerView) findViewById(R.id.lvItems);
         doneRvItems = (RecyclerView) findViewById(R.id.donelvItems);
         todoItems = new ArrayList<Item>();
         doneItems = new ArrayList<Item>();
-        readItems("todo.txt", todoItems);
-        readItems("done.txt", doneItems);
 
+        Item newItem = new Item("First");
+        newItem.save();
+        todoItems = (ArrayList) new Select().from(Item.class).execute();
+        doneItems = (ArrayList) new Select().from(Item.class).execute();
         setAdapters();
         setTouchHelpers();
     }
@@ -116,7 +123,7 @@ public class MainActivity extends AppCompatActivity implements EditItemFragment.
         try {
             ArrayList<String> todoTasks = new ArrayList<String>();
             for(Item item : items) {
-                todoTasks.add(item.getTask());
+//                todoTasks.add(item.getTask());
             }
             FileUtils.writeLines(todoFile, todoTasks);
         } catch (IOException e) {
@@ -140,7 +147,7 @@ public class MainActivity extends AppCompatActivity implements EditItemFragment.
     @Override
     public void onFinishEditNote(String input, int position) {
         Item editItem = todoItems.get(position);
-        editItem.setTask(input);
+        //editItem.setTask(input);
         todoAdapter.notifyItemChanged(position);
         updateFiles();
     }

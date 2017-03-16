@@ -54,7 +54,7 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder> {
     public void onBindViewHolder(ItemAdapter.ViewHolder viewHolder, int position) {
         final int pos = position;
         final ItemAdapter.ViewHolder vHolder = viewHolder;
-        String itemText = items.get(position).getTask();
+//        String itemText = items.get(position).getTask();
         TextView itemName = viewHolder.itemName;
         CheckBox itemCheckBox = viewHolder.itemCheckBox;
         if (this.completed) {
@@ -63,7 +63,7 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder> {
         } else {
             itemCheckBox.setChecked(false);
         }
-        itemName.setText(itemText);
+//        itemName.setText(itemText);
     }
 
     @Override
