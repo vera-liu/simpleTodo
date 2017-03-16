@@ -24,11 +24,10 @@ The following **additional** features are implemented:
 * [x] Add ability to complete todo items in addition to deleting them
 * [x] Add option to delete all completed todos
 
-## Video Walkthrough 
+## Video Walkthrough
 
 Here's a walkthrough of implemented user stories:
-
-![Video Walkthrough](http://i.imgur.com/jFGzxHY.gifv)
+<img src='todo.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
 
 GIF created with [LiceCap](http://www.cockos.com/licecap/).
 
