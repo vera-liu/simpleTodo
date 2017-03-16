@@ -1,0 +1,18 @@
+<!-- fragment_edit_name.xml -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/edit_item"
+    android:layout_width="wrap_content" android:layout_height="wrap_content"
+    android:layout_gravity="center" android:orientation="vertical"  >
+
+    <TextView
+        android:id="@+id/task"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:paddingLeft="5dp"/>
+
+    <EditText
+        android:id="@+id/edit_note"
+        android:layout_width="match_parent"  android:layout_height="wrap_content"
+        android:inputType="text"
+        android:imeOptions="actionDone"
+        android:paddingLeft="5dp" />
+</LinearLayout>
