@@ -10,9 +10,53 @@
         android:paddingLeft="5dp"/>
 
     <EditText
+        android:id="@+id/edit_task"
+        android:layout_width="match_parent"  android:layout_height="wrap_content"
+        android:inputType="text"
+        android:imeOptions="actionDone"
+        android:paddingLeft="5dp" />
+
+    <TextView
+        android:id="@+id/note"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:paddingLeft="5dp"
+        android:text="Note"/>
+
+    <EditText
         android:id="@+id/edit_note"
         android:layout_width="match_parent"  android:layout_height="wrap_content"
         android:inputType="text"
         android:imeOptions="actionDone"
         android:paddingLeft="5dp" />
+
+    <TextView
+        android:id="@+id/priority"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:paddingLeft="5dp"
+        android:text="Priority"/>
+
+    <Spinner
+        android:id="@+id/prioritySp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:entries="@array/priority_arrays"
+        android:prompt="@string/priority_prompt" />
+
+    <TextView
+        android:id="@+id/date"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:paddingLeft="5dp"
+        android:text="Date"/>
+    <DatePicker
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/datePicker"
+        android:datePickerMode="spinner"
+        android:calendarViewShown="false" />
+    <Button
+        android:id="@+id/saveBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="SAVE"
+        android:onClick="onSaveEdit"/>
 </LinearLayout>

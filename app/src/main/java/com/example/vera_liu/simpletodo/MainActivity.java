@@ -9,24 +9,16 @@ import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.View;
 import android.widget.EditText;
 
-import com.activeandroid.ActiveAndroid;
-import com.activeandroid.Configuration;
 import com.activeandroid.query.Select;
 
-import org.apache.commons.io.FileUtils;
-
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 public class MainActivity extends AppCompatActivity implements EditItemFragment.EditNoteListener {
-    ArrayList<Item> todoItems, doneItems;
-    ItemAdapter todoAdapter, doneAdapter;
-    RecyclerView todoRvItems, doneRvItems;
-    public void updateFiles() {
-//        writeItems("todo.txt", todoItems);
-//        writeItems("done.txt", doneItems);
-    }
+    ArrayList<Item> todoItems;
+    ItemAdapter todoAdapter;
+    RecyclerView todoRvItems;
+
     public ItemTouchHelper.SimpleCallback initItemTouchCallback(final ItemAdapter adapter, final ArrayList<Item> items) {
         return new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
             @Override
@@ -36,30 +28,29 @@ public class MainActivity extends AppCompatActivity implements EditItemFragment.
             @Override
             public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
                 int position = viewHolder.getAdapterPosition();
+                Item itemToRemove = items.get(position);
                 items.remove(position);
                 adapter.notifyItemRemoved(position);
-                updateFiles();
+                itemToRemove.delete();
             }
         };
     }
-    protected ItemAdapter.OnItemClickListener getCheckboxListener(final ArrayList<Item> sourceList, final ArrayList<Item> targetList, final ItemAdapter sourceAdapter, final ItemAdapter targetAdapter ) {
+
+    protected ItemAdapter.OnItemClickListener getCheckboxListener(final ArrayList<Item> sourceList, final ItemAdapter sourceAdapter) {
         return (new ItemAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View itemView, int position) {
                 Item itemText = sourceList.get(position);
-                sourceList.remove(position);
-                targetList.add(0, itemText);
-                sourceAdapter.notifyItemRemoved(position);
-                targetAdapter.notifyItemInserted(0);
-                updateFiles();
+                itemText.setDone();
+                sourceAdapter.notifyItemChanged(position);
             }
         });
     }
     protected void showEditDialog(int position) {
         Item item = todoItems.get(position);
         FragmentManager fm = getSupportFragmentManager();
-        //EditItemFragment editFragment = EditItemFragment.newInstance(item.getTask(), item.getNote(), position);
-        //editFragment.show(fm,"fragment_edit_item");
+        EditItemFragment editFragment = EditItemFragment.newInstance(item, position);
+        editFragment.show(fm,"fragment_edit_item");
     }
     protected ItemAdapter.OnItemClickListener getTextListener() {
         return (new ItemAdapter.OnItemClickListener() {
@@ -72,83 +63,54 @@ public class MainActivity extends AppCompatActivity implements EditItemFragment.
     protected void setTouchHelpers() {
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(initItemTouchCallback((ItemAdapter) todoRvItems.getAdapter(), todoItems));
         itemTouchHelper.attachToRecyclerView(todoRvItems);
-        ItemTouchHelper doneItemTouchHelper = new ItemTouchHelper(initItemTouchCallback((ItemAdapter) doneRvItems.getAdapter(), doneItems));
-        doneItemTouchHelper.attachToRecyclerView(doneRvItems);
 
-        todoAdapter.setOnItemClickListener(getCheckboxListener(todoItems, doneItems, todoAdapter, doneAdapter), getTextListener());
-        doneAdapter.setOnItemClickListener(getCheckboxListener(doneItems, todoItems, doneAdapter, todoAdapter), null);
+        todoAdapter.setOnItemClickListener(getCheckboxListener(todoItems, todoAdapter), getTextListener());
     }
     protected void setAdapters() {
-        todoAdapter = new ItemAdapter(this, todoItems, false);
-        doneAdapter = new ItemAdapter(this, doneItems, true);
-
+        todoAdapter = new ItemAdapter(this, todoItems);
         todoRvItems.setAdapter(todoAdapter);
-        doneRvItems.setAdapter(doneAdapter);
         todoRvItems.setLayoutManager(new LinearLayoutManager(this));
-        doneRvItems.setLayoutManager(new LinearLayoutManager(this));
     }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Configuration dbConfiguration = new Configuration.Builder(this).setDatabaseName("todo.db").create();
-        ActiveAndroid.initialize(dbConfiguration);
         todoRvItems = (RecyclerView) findViewById(R.id.lvItems);
-        doneRvItems = (RecyclerView) findViewById(R.id.donelvItems);
-        todoItems = new ArrayList<Item>();
-        doneItems = new ArrayList<Item>();
-
-        Item newItem = new Item("First");
-        newItem.save();
         todoItems = (ArrayList) new Select().from(Item.class).execute();
-        doneItems = (ArrayList) new Select().from(Item.class).execute();
         setAdapters();
         setTouchHelpers();
     }
-    private void readItems(String filename, ArrayList<Item> items) {
-        File filesDir = getFilesDir();
-        File todoFile = new File(filesDir, filename);
-        try {
-            ArrayList<String> itemTasks = new ArrayList<String>(FileUtils.readLines(todoFile));
-            for (String task : itemTasks) {
-                items.add(new Item(task));
-            }
-        } catch (IOException e) {
-            items = new ArrayList<Item>();
-        }
-    }
-    private void writeItems(String filename, ArrayList<Item> items) {
-        File filesDir = getFilesDir();
-        File todoFile = new File(filesDir, filename);
-        try {
-            ArrayList<String> todoTasks = new ArrayList<String>();
-            for(Item item : items) {
-//                todoTasks.add(item.getTask());
-            }
-            FileUtils.writeLines(todoFile, todoTasks);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+
     public void onAddItem(View v) {
         EditText etNewItem  = (EditText) findViewById(R.id.etNewItem);
         String itemText = etNewItem.getText().toString();
-        todoItems.add(0, new Item(itemText));
+        Item newItem = new Item(itemText);
+        newItem.save();
+        todoItems.add(0, newItem);
         todoAdapter.notifyItemInserted(0);
         todoRvItems.scrollToPosition(0);
         etNewItem.setText("");
-        updateFiles();
     }
     public void onDumpCompleted(View v) {
-        doneItems.clear();
-        doneAdapter.notifyDataSetChanged();
-        updateFiles();
+        for (Iterator<Item> iterator = todoItems.iterator(); iterator.hasNext();) {
+            Item item = iterator.next();
+            if (item.getDone()) {
+                // Remove the current element from the iterator and the list.
+                item.delete();
+                iterator.remove();
+            }
+        }
+        todoAdapter.notifyDataSetChanged();
     }
+
     @Override
-    public void onFinishEditNote(String input, int position) {
+    public void onSaveEdit(String task, String note, String priority, int year, int month, int day, int position) {
         Item editItem = todoItems.get(position);
-        //editItem.setTask(input);
+        editItem.setTask(task);
+        editItem.setNote(note);
+        editItem.setPriority(priority);
+        editItem.setDate(year, month, day);
         todoAdapter.notifyItemChanged(position);
-        updateFiles();
     }
+
 }
